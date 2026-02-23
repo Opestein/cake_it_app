@@ -5,6 +5,7 @@ import 'package:cake_it_app/src/features/cake_details_view.dart';
 import 'package:cake_it_app/src/settings/settings_view.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 /// Displays a list of cakes.
 /// Hmmm Stateful Widget is used here, but it could be a StatelessWidget?
@@ -20,6 +21,7 @@ class CakeListView extends StatefulWidget {
 }
 
 class _CakeListViewState extends State<CakeListView> {
+  final _refreshController = RefreshController(initialRefresh: false);
   List<Cake> cakes = [];
 
   @override
@@ -28,17 +30,52 @@ class _CakeListViewState extends State<CakeListView> {
     fetchCakes();
   }
 
-  Future<void> fetchCakes() async {
+  @override
+  void dispose() {
+    super.dispose();
+    _refreshController.dispose();
+  }
+
+  Future<void> fetchCakes(
+      {Function()? onSuccess, Function(String errorMessage)? onFailed}) async {
     final url = Uri.parse(
         "https://gist.githubusercontent.com/hart88/79a65d27f52cbb74db7df1d200c4212b/raw/ebf57198c7490e42581508f4f40da88b16d784ba/cakeList");
     final response = await http.get(url);
-    await Future.delayed(const Duration(seconds: 2));
     if (response.statusCode == 200) {
       List<dynamic> decodedResponse = json.decode(response.body);
       setState(() {
         cakes = decodedResponse.map((cake) => Cake.fromJson(cake)).toList();
       });
+      if (onSuccess != null) {
+        onSuccess();
+      }
+    } else {
+      String errorMessage = "";
+      try {
+        errorMessage = json.decode(response.body)["message"];
+      } catch (err) {
+        errorMessage = err.toString();
+      }
+      if (onFailed != null) {
+        onFailed(errorMessage);
+      }
     }
+  }
+
+  _onRefresh() {
+    _refreshController.requestRefresh();
+    fetchCakes(onSuccess: () {
+      _refreshController.refreshToIdle();
+    }, onFailed: (errorMessage) {
+      _refreshController.refreshFailed();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(
+          errorMessage,
+          style: TextStyle(color: Colors.white),
+        ),
+        action: SnackBarAction(label: "OK", onPressed: () {}),
+      ));
+    });
   }
 
   @override
@@ -58,32 +95,41 @@ class _CakeListViewState extends State<CakeListView> {
           ),
         ],
       ),
-      body: ListView.builder(
-        restorationId: 'cakeListView',
-        itemCount: cakes.length,
-        itemBuilder: (BuildContext context, int index) {
-          final cake = cakes[index];
+      body: SmartRefresher(
+        enablePullDown: true,
+        enablePullUp: false,
+        header: WaterDropHeader(
+          waterDropColor: Theme.of(context).primaryColor,
+        ),
+        controller: _refreshController,
+        onRefresh: () => _onRefresh(),
+        child: ListView.builder(
+          restorationId: 'cakeListView',
+          itemCount: cakes.length,
+          itemBuilder: (BuildContext context, int index) {
+            final cake = cakes[index];
 
-          return ListTile(
-              title: Text('${cake.title}'),
-              subtitle: Text('${cake.description}'),
-              leading: CircleAvatar(
-                child: Image.network(
-                  cakes[index].image!,
+            return ListTile(
+                title: Text('${cake.title}'),
+                subtitle: Text('${cake.description}'),
+                leading: CircleAvatar(
+                  foregroundImage: NetworkImage(
+                    cakes[index].image!,
+                  ),
                 ),
-              ),
-              onTap: () {
-                Navigator.restorablePushNamed(
-                  context,
-                  CakeDetailsView.routeName,
-                  arguments: const Cake(
-                    title: 'failed cake',
-                    description: 'soggy bottom',
-                    image: 'https://www.example.com',
-                  ).toJson(),
-                );
-              });
-        },
+                onTap: () {
+                  Navigator.restorablePushNamed(
+                    context,
+                    CakeDetailsView.routeName,
+                    arguments: const Cake(
+                      title: 'failed cake',
+                      description: 'soggy bottom',
+                      image: 'https://www.example.com',
+                    ).toJson(),
+                  );
+                });
+          },
+        ),
       ),
     );
   }
