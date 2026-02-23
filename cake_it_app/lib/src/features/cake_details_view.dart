@@ -1,54 +1,82 @@
-import 'package:cake_it_app/src/features/cake.dart';
+import 'package:cake_it_app/src/models/cake.dart';
 import 'package:flutter/material.dart';
 
-/// Displays detailed information about a cake.
 class CakeDetailsView extends StatelessWidget {
   const CakeDetailsView({
     super.key,
+    required this.index,
+    required this.cake,
   });
 
   static const routeName = '/cake_detail';
 
+  final int index;
+  final Cake cake;
+
   @override
   Widget build(BuildContext context) {
-    final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-    Cake cake = Cake.fromJson(args);
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cake Details'),
+        title: Text(cake.title),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AspectRatio(
               aspectRatio: 1,
               child: Hero(
-                tag: cake.uui ?? '',
-                child: Image.network(
-                  cake.image ?? '',
-                  fit: BoxFit.cover,
-                ),
+                tag: 'cake_image_$index',
+                child: cake.image.isNotEmpty
+                    ? Image.network(
+                        cake.image,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (_, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                  : null,
+                            ),
+                          );
+                        },
+                        errorBuilder: (_, __, ___) => const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.broken_image,
+                                  size: 48, color: Colors.grey),
+                              SizedBox(height: 8),
+                              Text('Image failed to load'),
+                            ],
+                          ),
+                        ),
+                      )
+                    : const Center(
+                        child: Icon(Icons.cake, size: 64, color: Colors.grey),
+                      ),
               ),
             ),
-            const SizedBox(
-              height: 14,
-            ),
-            Container(
+            const SizedBox(height: 16),
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              alignment: Alignment.center,
-              child: Text('${cake.title}',
-                  style: Theme.of(context).textTheme.titleLarge),
+              child: Text(
+                cake.title,
+                style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.center,
+              ),
             ),
-            const SizedBox(
-              height: 4,
-            ),
-            Container(
+            const SizedBox(height: 8),
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              alignment: Alignment.center,
-              child: Text('${cake.description}'),
+              child: Text(
+                cake.description,
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         ),

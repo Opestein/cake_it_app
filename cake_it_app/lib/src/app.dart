@@ -1,4 +1,4 @@
-import 'package:cake_it_app/src/features/cake_details_view.dart';
+import 'package:cake_it_app/src/data/cake_repository.dart';
 import 'package:cake_it_app/src/features/cake_list_view.dart';
 import 'package:cake_it_app/src/localization/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -7,8 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
 
-/// The Widget that configures your application.
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({
     super.key,
     required this.settingsController,
@@ -17,14 +16,32 @@ class MyApp extends StatelessWidget {
   final SettingsController settingsController;
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late final CakeRepository _cakeRepository;
+
+  @override
+  void initState() {
+    super.initState();
+    _cakeRepository = CakeRepository();
+  }
+
+  @override
+  void dispose() {
+    _cakeRepository.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: settingsController,
+      listenable: widget.settingsController,
       builder: (BuildContext context, Widget? child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           restorationScopeId: 'app',
-
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
@@ -32,30 +49,30 @@ class MyApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
           supportedLocales: const [
-            Locale('en', ''), // English, no country code
+            Locale('en', ''),
           ],
-
           onGenerateTitle: (BuildContext context) =>
               AppLocalizations.of(context)!.appTitle,
-
-          theme: ThemeData(),
-          darkTheme: ThemeData.dark(),
-          themeMode: settingsController.themeMode,
-
-          // Define a function to handle named routes in order to support
-          // Flutter web url navigation and deep linking.
+          theme: ThemeData(
+            useMaterial3: true,
+            colorSchemeSeed: Colors.deepPurple,
+          ),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.dark,
+            colorSchemeSeed: Colors.deepPurple,
+          ),
+          themeMode: widget.settingsController.themeMode,
           onGenerateRoute: (RouteSettings routeSettings) {
             return MaterialPageRoute<void>(
               settings: routeSettings,
               builder: (BuildContext context) {
                 switch (routeSettings.name) {
                   case SettingsView.routeName:
-                    return SettingsView(controller: settingsController);
-                  case CakeDetailsView.routeName:
-                    return const CakeDetailsView();
+                    return SettingsView(controller: widget.settingsController);
                   case CakeListView.routeName:
                   default:
-                    return const CakeListView();
+                    return CakeListView(cakeRepository: _cakeRepository);
                 }
               },
             );
