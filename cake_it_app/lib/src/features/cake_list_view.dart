@@ -71,7 +71,7 @@ class _CakeListViewState extends State<CakeListView> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(
           errorMessage,
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         ),
         action: SnackBarAction(label: "OK", onPressed: () {}),
       ));
@@ -110,21 +110,30 @@ class _CakeListViewState extends State<CakeListView> {
             final cake = cakes[index];
 
             return ListTile(
-                title: Text('${cake.title}'),
-                subtitle: Text('${cake.description}'),
-                leading: CircleAvatar(
-                  foregroundImage: NetworkImage(
-                    cakes[index].image!,
+                contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                title: Text(
+                  cake.title ?? '',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+                subtitle: Text(cake.description ?? ''),
+                leading: Hero(
+                  tag: index,
+                  child: CircleAvatar(
+                    foregroundImage: NetworkImage(
+                      cakes.elementAt(index).image!,
+                    ),
                   ),
                 ),
                 onTap: () {
+                  Cake cake = cakes.elementAt(index);
                   Navigator.restorablePushNamed(
                     context,
                     CakeDetailsView.routeName,
-                    arguments: const Cake(
-                      title: 'failed cake',
-                      description: 'soggy bottom',
-                      image: 'https://www.example.com',
+                    arguments: Cake(
+                      uui: index.toString(),
+                      title: cake.title ?? '',
+                      description: cake.description ?? '',
+                      image: cake.image ?? '',
                     ).toJson(),
                   );
                 });
