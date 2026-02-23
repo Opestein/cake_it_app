@@ -50,7 +50,7 @@ class CakeDetailsView extends StatelessWidget {
                               Icon(Icons.broken_image,
                                   size: 48, color: Colors.grey),
                               SizedBox(height: 8),
-                              Text('Image failed to load'),
+                              Material(child: Text('Image failed to load')),
                             ],
                           ),
                         ),
