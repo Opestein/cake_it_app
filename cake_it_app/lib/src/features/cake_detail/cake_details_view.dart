@@ -8,8 +8,6 @@ class CakeDetailsView extends StatelessWidget {
     required this.cake,
   });
 
-  static const routeName = '/cake_detail';
-
   final int index;
   final Cake cake;
 

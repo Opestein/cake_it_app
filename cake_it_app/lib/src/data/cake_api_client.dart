@@ -1,18 +1,18 @@
 import 'package:http/http.dart' as http;
 
 class CakeApiClient {
-  CakeApiClient({http.Client? httpClient})
-      : _httpClient = httpClient ?? http.Client();
+  CakeApiClient({
+    required this.baseUrl,
+    http.Client? httpClient,
+  }) : _httpClient = httpClient ?? http.Client();
 
+  final String baseUrl;
   final http.Client _httpClient;
-
-  static const String _cakeListUrl =
-      'https://gist.githubusercontent.com/hart88/198f29ec5114a3ec3460'
-      '/raw/8dd19a88f9b8d24c23d9960f3300d0c917a4f07c/cake.json';
 
   Future<String> fetchCakesJson() async {
     try {
-      final uri = Uri.parse(_cakeListUrl);
+      final uri = Uri.parse('$baseUrl/hart88/198f29ec5114a3ec3460'
+          '/raw/8dd19a88f9b8d24c23d9960f3300d0c917a4f07c/cake.json');
       final response = await _httpClient.get(uri);
 
       if (response.statusCode == 200) {
@@ -36,7 +36,6 @@ class CakeApiClient {
     }
   }
 
-  /// Closes the underlying HTTP client.
   void dispose() {
     _httpClient.close();
   }

@@ -4,8 +4,8 @@ import 'package:cake_it_app/src/data/cake_api_client.dart';
 import 'package:cake_it_app/src/models/cake.dart';
 
 class CakeRepository {
-  CakeRepository({CakeApiClient? apiClient})
-      : _apiClient = apiClient ?? CakeApiClient();
+  CakeRepository({required String baseUrl, CakeApiClient? apiClient})
+      : _apiClient = apiClient ?? CakeApiClient(baseUrl: baseUrl);
 
   final CakeApiClient _apiClient;
 

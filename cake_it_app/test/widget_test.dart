@@ -1,4 +1,4 @@
-import 'package:cake_it_app/src/features/cake_details_view.dart';
+import 'package:cake_it_app/src/features/cake_detail/cake_details_view.dart';
 import 'package:cake_it_app/src/models/cake.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
